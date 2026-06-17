@@ -35,10 +35,21 @@ export async function onRequestPost(context) {
 
     const fetchUrl = `${backendUrl}/customers/public/liff-bind`;
     console.log("Pages Function forwarding payload to backend URL:", fetchUrl);
+    console.log(
+      "Pages Function runtime config:",
+      JSON.stringify({
+        backendHost: new URL(fetchUrl).host,
+        backendPath: new URL(fetchUrl).pathname,
+        hasLiffBindSecret: Boolean(liffBindSecret),
+        hasAccessClientId: Boolean(env.CF_ACCESS_CLIENT_ID),
+        hasAccessClientSecret: Boolean(env.CF_ACCESS_CLIENT_SECRET),
+      }),
+    );
 
     const response = await fetch(fetchUrl, {
       method: "POST",
       headers: {
+        "Accept": "application/json",
         "Content-Type": "application/json",
         "x-liff-bind-secret": liffBindSecret,
         ...accessHeaders,
@@ -67,7 +78,13 @@ export async function onRequestPost(context) {
     if (!response.ok) {
       console.error(`Pages Function forward request failed with status: ${response.status}`);
       return new Response(
-        JSON.stringify({ success: false, error: data?.message || rawData || "Backend request failed." }),
+        JSON.stringify({
+          success: false,
+          error: data?.message || rawData || "Backend request failed.",
+          backend_status: response.status,
+          backend_content_type: contentType,
+          backend_host: new URL(fetchUrl).host,
+        }),
         { status: response.status, headers: { "Content-Type": "application/json" } },
       );
     }
