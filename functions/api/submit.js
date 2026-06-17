@@ -3,43 +3,45 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const body = await request.json();
 
-    // 1. Read configuration from environment variables
     let backendUrl = env.BACKEND_URL || "http://localhost:3000";
     const liffBindSecret = env.LIFF_BIND_SECRET || "liff_bind_secret_key_2026_secure";
+    const accessHeaders =
+      env.CF_ACCESS_CLIENT_ID && env.CF_ACCESS_CLIENT_SECRET
+        ? {
+            "CF-Access-Client-Id": env.CF_ACCESS_CLIENT_ID,
+            "CF-Access-Client-Secret": env.CF_ACCESS_CLIENT_SECRET,
+          }
+        : {};
 
-    // Format backendUrl to route correctly through the Nginx / Vite proxy if it's a public domain
     if (backendUrl.includes("://") && !backendUrl.includes("localhost") && !backendUrl.includes("127.0.0.1")) {
-      // Remove trailing slash if present
       backendUrl = backendUrl.replace(/\/$/, "");
-      // If the URL doesn't end with /api, append /api so that it routes correctly
       if (!backendUrl.endsWith("/api")) {
-        backendUrl = backendUrl + "/api";
+        backendUrl = `${backendUrl}/api`;
       }
     } else {
-      // For local development on localhost:3000, remove trailing slash
       backendUrl = backendUrl.replace(/\/$/, "");
     }
 
-    // 2. Extract and validate required fields
     const { customer_name, email, line_uid, line_display_name, utm_source, utm_medium } = body;
     console.log("Pages Function submit.js received payload:", JSON.stringify(body));
+
     if (!customer_name || !customer_name.trim() || !email || !email.trim() || !line_uid || !line_uid.trim()) {
       console.warn("Pages Function validation failed: missing required fields");
       return new Response(
-        JSON.stringify({ success: false, error: "姓名、Email 與 LINE UID 為必填欄位！" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: "Missing required fields: customer_name, email, or line_uid." }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
     const fetchUrl = `${backendUrl}/customers/public/liff-bind`;
     console.log("Pages Function forwarding payload to backend URL:", fetchUrl);
 
-    // 3. Forward payload to backend Docker API
     const response = await fetch(fetchUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-liff-bind-secret": liffBindSecret,
+        ...accessHeaders,
       },
       body: JSON.stringify({
         customer_name: customer_name.trim(),
@@ -52,31 +54,54 @@ export async function onRequestPost(context) {
     });
 
     const rawData = await response.text();
+    const contentType = response.headers.get("content-type") || "";
     console.log(`Pages Function received response from backend (Status: ${response.status}):`, rawData);
 
-    let data;
+    let data = null;
     try {
       data = JSON.parse(rawData);
     } catch {
-      data = { message: rawData };
+      data = null;
     }
 
     if (!response.ok) {
       console.error(`Pages Function forward request failed with status: ${response.status}`);
       return new Response(
-        JSON.stringify({ success: false, error: data.message || "綁定後端資料庫失敗，請確認資料是否正確。" }),
-        { status: response.status, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: data?.message || rawData || "Backend request failed." }),
+        { status: response.status, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!data || data.success !== true) {
+      const looksLikeAccessPage =
+        contentType.includes("text/html") ||
+        rawData.includes("Cloudflare Access") ||
+        rawData.includes("/cdn-cgi/access/");
+
+      console.error(
+        "Pages Function expected backend JSON but received a different response.",
+        JSON.stringify({ status: response.status, contentType, looksLikeAccessPage }),
+      );
+
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: looksLikeAccessPage
+            ? "Backend is blocked by Cloudflare Access. Bypass /api/customers/public/liff-bind or use an Access service token."
+            : "Backend did not return the expected LIFF binding JSON.",
+        }),
+        { status: 502, headers: { "Content-Type": "application/json" } },
       );
     }
 
     return new Response(
       JSON.stringify({ success: true, data }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ success: false, error: error.message || "系統處理錯誤，請稍後再試。" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ success: false, error: error.message || "Unexpected LIFF submit error." }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 }
