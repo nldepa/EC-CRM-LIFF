@@ -3,7 +3,7 @@
 // =========================================================
 
 // REPLACE THIS with your actual LIFF ID from LINE Developers Console
-const LIFF_ID = "YOUR_LIFF_ID"; 
+const LIFF_ID = "2010422854-KCtILn4G"; 
 
 // LINE Official Account Add-Friend URL
 const LINE_BOT_FOLLOW_URL = "https://line.me/R/ti/p/@252egmyd";
