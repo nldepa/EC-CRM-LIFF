@@ -203,18 +203,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Countdown timer redirect
   function startCountdown() {
-    let secondsLeft = 3;
-    const countdownEl = document.getElementById("countdown_sec");
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (typeof liff !== "undefined" && liff.isInClient());
     
-    const interval = setInterval(() => {
-      secondsLeft--;
-      countdownEl.textContent = secondsLeft;
+    if (isMobile) {
+      // Mobile user: Auto redirect to LINE official account deep link
+      let secondsLeft = 3;
+      const countdownEl = document.getElementById("countdown_sec");
       
-      if (secondsLeft <= 0) {
-        clearInterval(interval);
-        window.location.href = LINE_BOT_FOLLOW_URL;
+      const interval = setInterval(() => {
+        secondsLeft--;
+        countdownEl.textContent = secondsLeft;
+        
+        if (secondsLeft <= 0) {
+          clearInterval(interval);
+          window.location.href = LINE_BOT_FOLLOW_URL;
+        }
+      }, 1000);
+    } else {
+      // PC/Desktop user: Show QR Code and disable automatic redirect so they can scan it
+      const qrContainer = document.getElementById("qr_container");
+      if (qrContainer) {
+        qrContainer.style.display = "flex";
       }
-    }, 1000);
+      
+      // Hide the countdown text since we don't want to auto-redirect
+      const redirectCountdownEl = document.querySelector(".redirect-countdown");
+      if (redirectCountdownEl) {
+        redirectCountdownEl.style.display = "none";
+      }
+    }
   }
 
   // Toast helper

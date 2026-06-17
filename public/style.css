@@ -451,3 +451,35 @@ input::placeholder {
   background: rgba(30, 10, 10, 0.95);
   color: #fca5a5;
 }
+
+/* QR Code for PC/Desktop success state */
+.qr-container {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.qr-wrapper {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.qr-code-img {
+  width: 160px;
+  height: 160px;
+  display: block;
+}
+
+.qr-text-hint {
+  font-size: 0.9rem !important;
+  color: var(--primary-accent) !important;
+  font-weight: 500;
+}
