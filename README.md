@@ -70,4 +70,4 @@ http://localhost:8788/?utm_source=ad21&utm_medium=fb_share
 1. 瀏覽器開啟上述網址後，系統會偵測到無法連上 LINE LIFF，並自動開啟**「本地模擬測試模式」**。
 2. 填寫**姓名**與 **Email**。
 3. 點選「確認送出並綁定」，此請求會被本地 Function 攔截，並轉發至後端 Docker API。
-4. 成功後，網頁會出現綠色打勾標誌，3 秒後會自動轉導至 Messaging API 官方帳號的加好友連結 。
+4. 成功後，網頁會出現綠色打勾標誌，3 秒後會自動轉導至 Messaging API 官方帳號的加好友連結。
