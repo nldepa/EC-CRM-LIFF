@@ -1,9 +1,0 @@
-# 強制所有訪問 pages.dev 改向自訂網域
-https://liff-bvn.pages.dev/*  https://liff.nldepa.org.tw/:splat  301!
-
-# 預設所有路徑交給 Cloudflare Function [[path]].js 處理
-/*  /functions/[[path]].js  200!
-
-# API 直接 passthrough
-/api/*  /functions/:splat  200!
-

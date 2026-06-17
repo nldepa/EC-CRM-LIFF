@@ -1,0 +1,12 @@
+{
+  "name": "cloudflare-liff-form",
+  "version": "1.0.0",
+  "description": "LINE LIFF Form hosted on Cloudflare Pages",
+  "scripts": {
+    "dev": "wrangler pages dev ./public",
+    "deploy": "wrangler pages deploy ./public"
+  },
+  "devDependencies": {
+    "wrangler": "^3.109.0"
+  }
+}
