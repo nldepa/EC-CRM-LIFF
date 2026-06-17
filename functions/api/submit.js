@@ -22,15 +22,20 @@ export async function onRequestPost(context) {
 
     // 2. Extract and validate required fields
     const { customer_name, email, line_uid, line_display_name, utm_source, utm_medium } = body;
+    console.log("Pages Function submit.js received payload:", JSON.stringify(body));
     if (!customer_name || !customer_name.trim() || !email || !email.trim() || !line_uid || !line_uid.trim()) {
+      console.warn("Pages Function validation failed: missing required fields");
       return new Response(
         JSON.stringify({ success: false, error: "姓名、Email 與 LINE UID 為必填欄位！" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
+    const fetchUrl = `${backendUrl}/customers/public/liff-bind`;
+    console.log("Pages Function forwarding payload to backend URL:", fetchUrl);
+
     // 3. Forward payload to backend Docker API
-    const response = await fetch(`${backendUrl}/customers/public/liff-bind`, {
+    const response = await fetch(fetchUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,6 +52,8 @@ export async function onRequestPost(context) {
     });
 
     const rawData = await response.text();
+    console.log(`Pages Function received response from backend (Status: ${response.status}):`, rawData);
+
     let data;
     try {
       data = JSON.parse(rawData);
@@ -55,6 +62,7 @@ export async function onRequestPost(context) {
     }
 
     if (!response.ok) {
+      console.error(`Pages Function forward request failed with status: ${response.status}`);
       return new Response(
         JSON.stringify({ success: false, error: data.message || "綁定後端資料庫失敗，請確認資料是否正確。" }),
         { status: response.status, headers: { "Content-Type": "application/json" } }
