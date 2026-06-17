@@ -3,7 +3,7 @@
 // =========================================================
 
 // REPLACE THIS with your actual LIFF ID from LINE Developers Console
-const LIFF_ID = "2010422854-KCtILn4G"; 
+const LIFF_ID = "2010422854-KCtILn4G";
 
 // LINE Official Account Add-Friend URL
 const LINE_BOT_FOLLOW_URL = "https://line.me/R/ti/p/@252egmyd";
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = document.getElementById("submit_btn");
   const spinner = submitBtn.querySelector(".spinner");
   const btnText = submitBtn.querySelector(".btn-text");
-  
+
   // URL parameters parsing (UTM tracking)
   const urlParams = new URLSearchParams(window.location.search);
   const utmSource = urlParams.get("utm_source");
@@ -25,11 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (utmSource || utmMedium) {
     document.getElementById("utm_source").value = utmSource || "";
     document.getElementById("utm_medium").value = utmMedium || "";
-    
+
     const utmContainer = document.getElementById("utm_tags_container");
     const tagSource = document.getElementById("tag_source");
     const tagMedium = document.getElementById("tag_medium");
-    
+
     if (utmSource) tagSource.textContent = `Source: ${utmSource}`;
     if (utmMedium) tagMedium.textContent = `Medium: ${utmMedium}`;
     utmContainer.style.display = "flex";
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (uidDisplay && profile.userId) {
           uidDisplay.textContent = `ID: ${maskString(profile.userId)}`;
         }
-        
+
         // Hidden inputs
         const lineUidInput = document.getElementById("line_uid");
         if (lineUidInput && profile.userId) {
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (lineDisplayNameInput && profile.displayName) {
           lineDisplayNameInput.value = profile.displayName;
         }
-        
+
         // Enable submit button
         if (submitBtn) {
           submitBtn.removeAttribute("disabled");
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (uidDisplay) {
       uidDisplay.textContent = "ID: U_mock_test_123456";
     }
-    
+
     const lineUidInput = document.getElementById("line_uid");
     if (lineUidInput) {
       lineUidInput.value = "U_mock_test_123456";
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (lineDisplayNameInput) {
       lineDisplayNameInput.value = "測試會員 (模擬模式)";
     }
-    
+
     if (submitBtn) {
       submitBtn.removeAttribute("disabled");
     }
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. Submit handler
   bindForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    
+
     // Check validation
     let isFormValid = true;
     inputs.forEach(input => {
@@ -195,23 +195,40 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       body: JSON.stringify(payload)
     })
-      .then(response => response.json().then(data => ({ status: response.status, body: data })))
-      .then(({ status, body }) => {
-        if (status !== 200 || !body.success) {
-          throw new Error(body.error || "綁定失敗");
+      .then(async (response) => {
+        const rawBody = await response.text();
+        let data = null;
+
+        try {
+          data = rawBody ? JSON.parse(rawBody) : null;
+        } catch {
+          const trimmedBody = rawBody.trim();
+          const looksLikeHtml = trimmedBody.startsWith("<!DOCTYPE") || trimmedBody.startsWith("<html");
+          throw new Error(
+            looksLikeHtml
+              ? `Server returned an HTML error page (${response.status}). Check Cloudflare Pages Functions and Access settings.`
+              : `Server returned a non-JSON response (${response.status}).`
+          );
         }
-        
+
+        return { status: response.status, body: data };
+      })
+      .then(({ status, body }) => {
+        if (status !== 200 || !body?.success) {
+          throw new Error(body?.error || body?.message || `Submit failed (${status}).`);
+        }
+
         // Success: Transition cards
         formCard.style.display = "none";
         successCard.style.display = "block";
-        
+
         // Start Countdown and Redirect
         startCountdown();
       })
       .catch((err) => {
         console.error("Submission failed:", err);
         showToast(err.message || "系統錯誤，請稍後再試。", "error");
-        
+
         // Reset loading state
         submitBtn.removeAttribute("disabled");
         spinner.style.display = "none";
@@ -222,16 +239,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // Countdown timer redirect
   function startCountdown() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (typeof liff !== "undefined" && liff.isInClient());
-    
+
     if (isMobile) {
       // Mobile user: Auto redirect to LINE official account deep link
       let secondsLeft = 3;
       const countdownEl = document.getElementById("countdown_sec");
-      
+
       const interval = setInterval(() => {
         secondsLeft--;
         countdownEl.textContent = secondsLeft;
-        
+
         if (secondsLeft <= 0) {
           clearInterval(interval);
           window.location.href = LINE_BOT_FOLLOW_URL;
@@ -243,7 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (qrContainer) {
         qrContainer.style.display = "flex";
       }
-      
+
       // Hide the countdown text since we don't want to auto-redirect
       const redirectCountdownEl = document.querySelector(".redirect-countdown");
       if (redirectCountdownEl) {
@@ -257,13 +274,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.className = "toast";
-    
+
     if (type === "error") {
       toast.classList.add("error");
     }
-    
+
     toast.classList.add("show");
-    
+
     setTimeout(() => {
       toast.classList.remove("show");
     }, 3500);

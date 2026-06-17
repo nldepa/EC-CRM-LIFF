@@ -8,9 +8,9 @@ export async function onRequestPost(context) {
     const accessHeaders =
       env.CF_ACCESS_CLIENT_ID && env.CF_ACCESS_CLIENT_SECRET
         ? {
-            "CF-Access-Client-Id": env.CF_ACCESS_CLIENT_ID,
-            "CF-Access-Client-Secret": env.CF_ACCESS_CLIENT_SECRET,
-          }
+          "CF-Access-Client-Id": env.CF_ACCESS_CLIENT_ID,
+          "CF-Access-Client-Secret": env.CF_ACCESS_CLIENT_SECRET,
+        }
         : {};
 
     if (backendUrl.includes("://") && !backendUrl.includes("localhost") && !backendUrl.includes("127.0.0.1")) {
