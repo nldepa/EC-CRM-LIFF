@@ -1,0 +1,59 @@
+/* ==========
+   line-log.html 專用主題與驗證樣式
+   ========== */
+body.container {
+  max-width: 500px;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  padding: 2rem 1.5rem;
+}
+
+h3 {
+  font-weight: 600;
+  color: #333;
+}
+
+p.text-muted {
+  font-size: 0.95rem;
+}
+
+.form-label {
+  font-weight: 600;
+}
+
+.form-control {
+  border-radius: 0.4rem;
+}
+
+.validation-message {
+  display: none;
+  font-size: 0.85rem;
+  color: #dc3545;
+  margin-top: 0.25rem;
+}
+
+.validation-message.active {
+  display: block;
+}
+
+/* Submit Button */
+button[type="submit"] {
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.7rem;
+  font-weight: 600;
+  background-color: #007bff;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+button[type="submit"]:hover {
+  background-color: #0066d0;
+}
+
+@media (max-width: 576px) {
+  body.container {
+    padding: 1rem;
+  }
+}

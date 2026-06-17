@@ -1,0 +1,28 @@
+/* ---------------- Global Form Fix ---------------- */
+
+.hidden {
+  display: none !important;
+}
+
+/* 保證表單在 JS 控制後一定可顯示 */
+#form {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* ---- 來自 style.css ---- */
+body {
+  padding: 2rem;
+  max-width: 600px;
+  margin: auto;
+}
+
+form {
+  border: 1px solid #e3e3e3;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background: #fafafa;
+}
+
+/* ---- index.html UI (原樣保留) ---- */
