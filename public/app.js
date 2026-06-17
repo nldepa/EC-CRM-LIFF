@@ -77,29 +77,37 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((profile) => {
         // UI updates
         const userAvatar = document.getElementById("user_avatar");
-        if (userAvatar) {
-          userAvatar.src = profile.pictureUrl || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a1a1aa'><path d='M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z'/></svg>";
+        if (userAvatar && profile.pictureUrl) {
+          userAvatar.src = profile.pictureUrl;
         }
         const nameDisplay = document.getElementById("line_name_display");
-        if (nameDisplay) {
+        if (nameDisplay && profile.displayName) {
           nameDisplay.textContent = profile.displayName;
         }
         const uidDisplay = document.getElementById("line_uid_display");
-        if (uidDisplay) {
+        if (uidDisplay && profile.userId) {
           uidDisplay.textContent = `ID: ${maskString(profile.userId)}`;
         }
         
         // Hidden inputs
-        document.getElementById("line_uid").value = profile.userId;
-        document.getElementById("line_display_name").value = profile.displayName;
+        const lineUidInput = document.getElementById("line_uid");
+        if (lineUidInput && profile.userId) {
+          lineUidInput.value = profile.userId;
+        }
+        const lineDisplayNameInput = document.getElementById("line_display_name");
+        if (lineDisplayNameInput && profile.displayName) {
+          lineDisplayNameInput.value = profile.displayName;
+        }
         
         // Enable submit button
-        submitBtn.removeAttribute("disabled");
+        if (submitBtn) {
+          submitBtn.removeAttribute("disabled");
+        }
       })
       .catch((err) => {
         console.error("Error getting profile:", err);
         // Prevent token expiration / authorization issues by forcing a re-login
-        if (err.code === "UNAUTHORIZED" || err.message?.includes("expired") || err.message?.includes("token")) {
+        if (err && (err.code === "UNAUTHORIZED" || err.message?.includes("expired") || err.message?.includes("token"))) {
           showToast("登入已過期，正在重新導向 LINE 登入...", "error");
           setTimeout(() => {
             liff.logout();
@@ -122,9 +130,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (uidDisplay) {
       uidDisplay.textContent = "ID: U_mock_test_123456";
     }
-    document.getElementById("line_uid").value = "U_mock_test_123456";
-    document.getElementById("line_display_name").value = "測試會員 (模擬模式)";
-    submitBtn.removeAttribute("disabled");
+    
+    const lineUidInput = document.getElementById("line_uid");
+    if (lineUidInput) {
+      lineUidInput.value = "U_mock_test_123456";
+    }
+    const lineDisplayNameInput = document.getElementById("line_display_name");
+    if (lineDisplayNameInput) {
+      lineDisplayNameInput.value = "測試會員 (模擬模式)";
+    }
+    
+    if (submitBtn) {
+      submitBtn.removeAttribute("disabled");
+    }
   }
 
   // Helper function to mask profile ID for visual assurance
