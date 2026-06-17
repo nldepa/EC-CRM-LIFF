@@ -4,8 +4,21 @@ export async function onRequestPost(context) {
     const body = await request.json();
 
     // 1. Read configuration from environment variables
-    const backendUrl = env.BACKEND_URL || "http://localhost:3000";
+    let backendUrl = env.BACKEND_URL || "http://localhost:3000";
     const liffBindSecret = env.LIFF_BIND_SECRET || "liff_bind_secret_key_2026_secure";
+
+    // Format backendUrl to route correctly through the Nginx / Vite proxy if it's a public domain
+    if (backendUrl.includes("://") && !backendUrl.includes("localhost") && !backendUrl.includes("127.0.0.1")) {
+      // Remove trailing slash if present
+      backendUrl = backendUrl.replace(/\/$/, "");
+      // If the URL doesn't end with /api, append /api so that it routes correctly
+      if (!backendUrl.endsWith("/api")) {
+        backendUrl = backendUrl + "/api";
+      }
+    } else {
+      // For local development on localhost:3000, remove trailing slash
+      backendUrl = backendUrl.replace(/\/$/, "");
+    }
 
     // 2. Extract and validate required fields
     const { customer_name, email, line_uid, line_display_name, utm_source, utm_medium } = body;
